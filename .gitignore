@@ -1,0 +1,5 @@
+*vendor/
+*berks-cookbooks/
+*help
+*.bundle
+*.vagrant

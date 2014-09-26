@@ -1,0 +1,8 @@
+{
+  "apache": {
+    "server_name": "apache"
+  },
+  "run_list": [
+    "role[apache]"
+  ]
+}

@@ -1,0 +1,35 @@
+# encoding: utf-8
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |global_config|
+  global_config.vm.box = "hands_on_20140924.box"
+  global_config.vm.box_url = "https://github.com/2creatives/vagrant-centos/releases/download/v6.5.3/centos65-x86_64-20140116.box"
+
+  global_config.vm.define :apache do |config|
+    config.vm.hostname = 'apache'
+    config.vm.network :private_network, ip: '192.168.20.100'
+    config.vm.provider :virtualbox do |v|
+      v.name = config.vm.hostname
+      v.customize ['modifyvm', :id, '--memory', '1024']
+      v.customize ['modifyvm', :id, '--cpus',      '1']
+    end
+
+    config.vm.provision :shell,
+      #inline: 'sudo rpm -ihv http://192.168.20.99/repos/chef/chef-11.12.4-1.el6.x86_64.rpm'
+       inline: 'curl -L https://www.opscode.com/chef/install.sh | sudo bash'
+
+    # Chef Configuration
+    # https://docs.vagrantup.com/v2/provisioning/chef_solo.html
+    config.vm.provision 'chef_solo' do |chef|
+      chef.log_level = :debug
+      chef.cookbooks_path = %w(site-cookbooks cookbooks vendor/cookbooks)
+      chef.roles_path = 'roles'
+      chef.json = JSON.parse(open(File.expand_path("../nodes/#{config.vm.hostname}.json", __FILE__)).read)
+
+      # 暗号化したデータを利用する場合は以下の設定を利用する
+      # chef.data_bags_path = 'data_bags'
+      # chef.encrypted_data_bag_secret_key_path = './data_bag_key'
+    end
+  end
+end
